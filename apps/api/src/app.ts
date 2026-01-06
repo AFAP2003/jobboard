@@ -6,8 +6,6 @@ import { ZodError } from 'zod'
 import { corsOptions, PORT } from './config'
 import { ResponseError } from './helpers/error.handler'
 import apiRouter from './routers/api.route'
-import { couponExpirationScheduler } from './helpers/scheduler'
-
 export class App {
   private app: Application
 
@@ -16,13 +14,9 @@ export class App {
     this.configure()
     this.routes()
     this.handleError()
-    this.scheduler()
   }
 
-  private scheduler() {
-    couponExpirationScheduler()
-  }
-
+ 
   private configure() {
     this.app.use(cors(corsOptions))
     this.app.options('*', (req, res) => {
@@ -94,7 +88,7 @@ export class App {
 
   start() {
     this.app.listen(PORT, () => {
-      console.log('Loket.com API is running on PORT', PORT)
+      console.log('Job board API isrunning on PORT', PORT)
     })
   }
 }

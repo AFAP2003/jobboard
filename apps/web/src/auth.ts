@@ -1,97 +1,79 @@
-import NextAuth, { Session } from 'next-auth'
-import { JWT } from 'next-auth/jwt'
-import Credentials from 'next-auth/providers/credentials'
-import jwt from 'jsonwebtoken'
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { fetchLogin, refreshAccessToken } from "./lib/apis/auth.api"
+import type { JWT } from "next-auth/jwt";
+import type { Session, User } from "next-auth";
 
-import { fetchLogin, fetchRefreshToken } from './lib/apis/auth.api'
-import { UserToken } from './lib/interfaces/auth.interface'
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  pages: {
-    signIn: '/login'
-  },
-  session: {
-    strategy: 'jwt',
-    maxAge: 60 * 60 * 24
-  },
+export const authOptions:any = {
   providers: [
     Credentials({
+      credentials: {
+        email: { label: "Email", type: "email", placeholder: "your@email.com" },
+        password: { label: "Password", type: "password" }
+      },
       async authorize(credentials) {
         const user = await fetchLogin({
-          email: credentials.email as string,
-          password: credentials.password as string
+          email: credentials?.email as string,
+          password: credentials?.password as string
         })
 
         if (!user.success) return null
 
+        // Return a proper User object with required id field
         return {
-          accessToken: user.data.accessToken
+          id: user.data.id,
+          email: user.data.email,
+          accessToken: user.data.accessToken,
+          refreshToken: user.data.refreshToken,
+          accessTokenExpires: Date.now() + user.data.expiresIn * 1000, // example
+          role:user.data.role
         }
       }
     })
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
-        token.accessToken = user.accessToken
+        return {
+          ...token,
+          id: user.id,
+          accessToken: (user as any).accessToken,
+          refreshToken: (user as any).refreshToken,
+          accessTokenExpires: (user as any).accessTokenExpires,
+          role: (user as any).role
+        };
       }
 
-      if (trigger === 'update' && session?.user) {
-        token.accessToken = session.user.accessToken
+      if (!token.accessTokenExpires) {
+        return token;
       }
-
-      if (session?.user.accessToken) {
-        const nowDate = Math.floor(Date.now() / 1000)
-        const iat = session.user.iat
-
-        // Do refresh token if the token age is 30 minutes or more
-        if (nowDate >= iat + 1800) {
-          const newAccessToken = await fetchRefreshToken(
-            session.user.accessToken
-          )
-
-          token.accessToken = newAccessToken
-        }
+    
+      if (Date.now() < (token.accessTokenExpires as number)) {
+        return token;
       }
-
-      return token
+      return await refreshAccessToken(token);
     },
     async session({ session, token }: { session: Session; token: JWT }) {
-      if (token) {
-        session.user.accessToken = token.accessToken
-
-        const decoded = jwt.decode(token.accessToken) as UserToken
-
-        session.user.id = decoded.id
-        session.user.name = decoded.name
-        session.user.email = decoded.email
-        session.user.image = decoded.image
-        session.user.roleId = decoded.roleId
-        session.user.referralCode = decoded.referralCode
-        session.user.iat = decoded.iat
-        session.user.exp = decoded.exp
+      if (session.user) {
+        session.user = session.user || {};
+        (session.user as any).id = token.id as string;
+        (session.user as any).accessToken = token.accessToken;
+        (session.user as any).refreshToken = token.refreshToken;
+        (session.user as any).accessTokenExpires = token.accessTokenExpires;
+        (session.user as any).role = token.role;
       }
-
-      return session
-    },
-    authorized({ auth, request }) {
-      const isCustomer = auth?.user.roleId === 1
-      const isEventOrganizer = auth?.user.roleId === 2
-      const isOnCustomerDashboardPage =
-        request.nextUrl.pathname.startsWith('/member/c')
-      const isOnEventOrganizerDashboardPage =
-        request.nextUrl.pathname.startsWith('/member/o')
-      const isOnLoginPage = request.nextUrl.pathname.startsWith('/login')
-
-      if (
-        (isOnCustomerDashboardPage && !isCustomer) ||
-        (isOnEventOrganizerDashboardPage && !isEventOrganizer) ||
-        ((isCustomer || isEventOrganizer) && isOnLoginPage)
-      ) {
-        return Response.redirect(new URL('/', request.nextUrl))
+      (session as any).error = token.error;
+      if (token.error) {
+        // Optionally, you can force sign out or show a message to the user here
+        // Example: signOut();
+        console.warn('Session error:', token.error);
       }
-
-      return true
+      return session;
     }
+  },
+  session: {
+    strategy: "jwt"
   }
-})
+};
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
