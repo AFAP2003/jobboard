@@ -1,6 +1,10 @@
 {
   "name": "mini-project",
   "private": true,
+   "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
@@ -18,10 +22,7 @@
     "node": ">=18"
   },
   "packageManager": "npm@10.8.3",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+ 
   "dependencies": {
     "next": "^16.1.1",
     "react": "^19.2.3",

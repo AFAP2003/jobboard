@@ -1,0 +1,16 @@
+{
+  "name": "@repo/ui",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./*": "./src/*.tsx"
+  },
+  "devDependencies": {
+    "@types/react": "*",
+    "@types/react-dom": "*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

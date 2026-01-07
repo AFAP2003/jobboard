@@ -10,11 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Lock, ArrowLeft, Loader2, CheckCircle, XCircle } from "lucide-react"; // Changed Mail to Lock
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 const ResetPasswordPage = () => {
   const params = useParams();
-  const router = useRouter();
   const { toast } = useToast();
 
   // State
