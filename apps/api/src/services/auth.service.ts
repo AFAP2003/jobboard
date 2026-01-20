@@ -37,6 +37,11 @@ class authService{
         const user = authRepository.login(email,password)
         return user}
 
+    async googleSignIn(email:string,name:string,googleId:string){
+        const user = await authRepository.findUserByGoogleId(googleId);   
+        return user
+    }
+
     async sendPasswordResetEmail(email:string){
         const token = await putPasswordResetToken(email);
         await sendPasswordResetEmail(email,{email, token} )

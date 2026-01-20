@@ -21,6 +21,7 @@ model User {
   email           String?       @unique
   password        String?
   authProvider    AuthProvider? @map("auth_provider")
+  googleId      String?      @map("google_id")
   skillId         String?      @map("skill_id")
   isVerified      Boolean?     @map("is_verified")
   profilePhoto    String?      @map("profile_photo")

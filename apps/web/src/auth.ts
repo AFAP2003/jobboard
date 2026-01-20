@@ -2,10 +2,15 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { fetchLogin, refreshAccessToken } from "./lib/apis/auth.api"
 import type { JWT } from "next-auth/jwt";
-import type { Session, User } from "next-auth";
+import type { Session, User, Account } from "next-auth";
+import Google from "next-auth/providers/google";
 
 export const authOptions:any = {
   providers: [
+      Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     Credentials({
       credentials: {
         email: { label: "Email", type: "email", placeholder: "your@email.com" },
@@ -32,6 +37,41 @@ export const authOptions:any = {
     })
   ],
   callbacks: {
+    async signIn({ user, account }: { user: User; account: Account | null }) {
+      // Handle Google OAuth sign in
+      if (account?.provider === "google") {
+        try {
+          // Send Google user data to your API to create/find user
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: user.email,
+                name: user.name,
+                googleId: account.providerAccountId,
+              }),
+            }
+          );
+
+          if (res.ok) {
+            const data = await res.json();
+            // Attach tokens from your API to the user object
+            user.accessToken = data.accessToken;
+            user.refreshToken = data.refreshToken;
+            user.role = data.user.role;
+            user.id = data.user.id;
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Google sign in error:", error);
+          return false;
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
         return {

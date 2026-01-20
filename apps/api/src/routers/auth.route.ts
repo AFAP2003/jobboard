@@ -10,6 +10,7 @@ export const authRouter = () => {
     router.patch('/verify-email/:token',authController.verifyEmailConfirmation)
     router.post('/verify-password-reset-token/:token',authController.verifyPasswordResetEmailToken)
     router.post('/reset-password-email',authController.sendResetPasswordEmail)
+    router.post('/google-signin',authController.googleLogin)
     return router
 }
 

@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import {  useState } from 'react'
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
+import { FcGoogle } from "react-icons/fc";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("")
@@ -56,6 +57,15 @@ const LoginPage = () => {
     }
   }
 
+   const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      await signIn("google", { callbackUrl: "/" });
+    } catch (err) {
+      setError("Google sign in failed");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className='flex min-h-screen flex-col'>
@@ -91,7 +101,12 @@ const LoginPage = () => {
                 </label>
                 <Link href="forgotpassword" className="text-primary hover:underline">
                   Forgot password?
-                </Link>
+                </Link> 
+              </div>
+               <div className="flex items-center justify-center text-sm">
+               <button onClick={handleGoogleLogin}>
+                <FcGoogle className="w-10 h-10" />
+              </button>
               </div>
               <Button type='submit' className='w-full' disabled={loading}>
                 {loading ? "Signing In..." : "Sign In"}

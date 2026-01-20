@@ -70,6 +70,31 @@ class authController{
             }
     }
 
+    async googleLogin(req:Request, res:Response,next:NextFunction) {   
+        try {
+            const { email, name, googleId } = req.body;      
+            const data = await authService.googleSignIn(email, name, googleId);
+            const accessToken = await putAccessToken({id:data!.id, email:data!.email});
+            const refreshToken = await putRefreshToken({id:data!.id});
+
+            res.status(200).send({ 
+                success:true,
+                message: "Google login successful",
+                data: {
+                     id: data!.id,
+                        email: data!.email,
+                        name: data!.name,
+                        accessToken,
+                        refreshToken,
+                        expiresIn:300
+
+                }
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async sendResetPasswordEmail(req:Request, res:Response,next:NextFunction) {   
         try {
            const  {email} = req.body
