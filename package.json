@@ -15,12 +15,14 @@
   "devDependencies": {
     "@repo/typescript-config": "^0.0.0",
     "prettier": "^3.2.5",
-    "ts-node": "^10.9.2",
     "turbo": "^2.3.4",
     "typescript": "5.5.4"
   },
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@10.8.3"
+  "packageManager": "npm@10.8.3",
+  "dependencies": {
+    "ts-node": "^10.9.2"
+  }
 }
