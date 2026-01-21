@@ -13,6 +13,13 @@ export const fetchLogin = async (data:any)=>{
 
 // Add refreshAccessToken for NextAuth JWT callback
 export const refreshAccessToken = async (token: any) => {
+     if (!token?.refreshToken) {
+        // No refresh token, don't try to refresh
+        return {
+            ...token,
+            error: "NoRefreshToken"
+        };
+    }
     try {
         const res = await fetch("http://localhost:8000/api/refresh", {
             method: "POST",

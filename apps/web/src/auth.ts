@@ -59,7 +59,7 @@ export const authOptions:any = {
             const data = await res.json();
             // Attach tokens from your API to the user object
             user.accessToken = data.accessToken;
-      user.refreshToken = data.refreshToken;
+(user as any).refreshToken = data.refreshToken;
       user.id = data.id;
       user.email = data.email;
       user.name = data.name;
@@ -85,14 +85,19 @@ export const authOptions:any = {
         };
       }
 
-      if (!token.accessTokenExpires) {
-        return token;
-      }
-    
-      if (Date.now() < (token.accessTokenExpires as number)) {
-        return token;
-      }
-      return await refreshAccessToken(token);
+       if (!token.accessToken || !token.refreshToken) {
+ return token;
+ }
+
+       if (
+    token.refreshToken &&
+    token.accessTokenExpires &&
+    Date.now() >= (token.accessTokenExpires as number)
+  ) {
+    return await refreshAccessToken(token);
+  }
+
+  return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {

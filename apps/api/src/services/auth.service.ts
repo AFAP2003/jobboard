@@ -1,5 +1,5 @@
-import { JWT_ACCESS_SECRET } from "../config";
-import { putEmailConfirmation, putPasswordResetToken } from "../helpers/jwt.handler";
+import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET } from "../config";
+import { putAccessToken, putEmailConfirmation, putPasswordResetToken, putRefreshToken } from "../helpers/jwt.handler";
 import { sendEmailConfirmation, sendPasswordResetEmail } from "../nodemailer";
 import { prismaClient } from "../prisma";
 import authRepository from "../repositories/auth.repository";
@@ -64,6 +64,34 @@ class authService{
             const user = await authRepository.findUserByEmail(payload.email);
             await authRepository.updatePassword(user.email as any, newPassword);
             return true;
+    }
+
+     async refreshToken(refreshToken: string) {
+        if (!refreshToken) {
+            throw new Error("Refresh token required");
+        }
+        let payload: string | JwtPayload;
+        try {
+            payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+        } catch (err) {
+            throw new Error("Invalid or expired refresh token");
+        }
+        if (typeof payload !== 'object' || !('id' in payload)) {
+            throw new Error("Invalid refresh token payload");
+        }
+        // Optionally, check if user still exists
+        const user = await prismaClient.user.findUnique({ where: { id: (payload as JwtPayload).id as string } });
+        if (!user) {
+            throw new Error("User not found");
+        }
+        // Issue new tokens (rotate refresh token for best practice)
+        const newAccessToken = await putAccessToken({ id: user.id, email: user.email });
+        const newRefreshToken = await putRefreshToken({ id: user.id });
+        return {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            expiresIn: 60 // 5 minutes in seconds
+        };
     }
 }
 

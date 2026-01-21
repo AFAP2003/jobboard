@@ -11,6 +11,7 @@ export const authRouter = () => {
     router.post('/verify-password-reset-token/:token',authController.verifyPasswordResetEmailToken)
     router.post('/reset-password-email',authController.sendResetPasswordEmail)
     router.post('/google-signin',authController.googleLogin)
+    router.post('/refresh',authController.refreshToken)
     return router
 }
 
