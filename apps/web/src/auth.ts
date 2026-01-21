@@ -59,9 +59,10 @@ export const authOptions:any = {
             const data = await res.json();
             // Attach tokens from your API to the user object
             user.accessToken = data.accessToken;
-            // user.refreshToken = data.refreshToken;
-            // user.role = data.user.role;
-            user.id = data.user.id;
+      user.refreshToken = data.refreshToken;
+      user.id = data.id;
+      user.email = data.email;
+      user.name = data.name;
             return true;
           }
           return false;
