@@ -43,7 +43,7 @@ export const authOptions:any = {
         try {
           // Send Google user data to your API to create/find user
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google`,
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/google-signin`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
