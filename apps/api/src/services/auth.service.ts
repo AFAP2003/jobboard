@@ -39,7 +39,12 @@ class authService{
         return user}
 
     async googleSignIn(email:string,name:string,googleId:string){
+        
         const user = await authRepository.findUserByGoogleId(googleId);   
+        if (!user){
+            const newUser = await authRepository.createGoogleUser({email,name,googleId});
+            return newUser;
+        }
         return user
     }
 
